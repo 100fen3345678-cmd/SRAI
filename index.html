@@ -79,12 +79,10 @@
             border: 1px solid #000; border-radius: 2px;
         }
         
-        /* 隱藏下拉箭頭與多餘外框，讓它完美融入黑方塊 */
         .top-select {
             background: var(--c-ui-dark); color: var(--c-ui-light);
             border: 1px solid #000; border-radius: 2px; font-family: var(--font);
             font-size: 20px; padding: 2px 6px; cursor: pointer; outline: none;
-            appearance: none; -webkit-appearance: none; -moz-appearance: none;
         }
 
         .chat-area { padding: 30px; display: flex; flex-direction: column; gap: 35px; padding-bottom: 50px; }
@@ -282,6 +280,7 @@
     </div>
 
     <script>
+        // 馬賽克顆粒調細緻 (將縮放系數從 0.18 調高到 0.35，顆粒變小更精緻)
         function loadAvatarAsMosaic(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -295,9 +294,9 @@
                     canvas.width = img.width;
                     canvas.height = img.height;
                     
-                    const mosaicScale = 0.18;
-                    const w = canvas.width * mosaicScale;
-                    const h = canvas.height * mosaicScale;
+                    const mosaicScale = 0.35; // 提高係數讓馬賽克變細緻
+                    const w = Math.max(10, canvas.width * mosaicScale);
+                    const h = Math.max(10, canvas.height * mosaicScale);
                     
                     ctx.imageSmoothingEnabled = false;
                     
