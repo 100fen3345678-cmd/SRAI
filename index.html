@@ -79,7 +79,6 @@
             border: 1px solid #000; border-radius: 2px;
         }
         
-        /* 完美修復右上角表情選單的黑框殘影 */
         .top-select {
             background: transparent; color: var(--c-ui-light);
             border: none; outline: none; font-family: var(--font);
@@ -91,20 +90,25 @@
         
         .user-block { display: flex; gap: 20px; align-items: flex-start; }
         
-        /* 頭像與下方選單區塊 */
-        .avatar-container { display: flex; flex-direction: column; gap: 5px; width: 85px; }
+        /* 隱藏式選單容器：平時透明隱藏，滑鼠移上去才浮現 */
+        .avatar-container { position: relative; width: 85px; height: 85px; cursor: pointer; }
         .avatar-box {
             width: 85px; height: 85px; background-color: var(--c-ui-dark);
-            border: 2px solid var(--c-ui-light); padding: 3px; cursor: pointer; box-sizing: border-box;
+            border: 2px solid var(--c-ui-light); padding: 3px; box-sizing: border-box;
         }
         .avatar-inner { width: 100%; height: 100%; border: 1px solid #666; overflow: hidden; background: #000; }
         .avatar-inner img { width: 100%; height: 100%; object-fit: cover; }
         
-        /* 角色選擇下拉選單 */
+        /* 角色快速選單（平時隱藏，Hover 時浮現） */
         .char-select {
-            width: 100%; background: var(--c-ui-dark); color: var(--c-ui-light);
+            position: absolute; bottom: -25px; left: 0; width: 100%;
+            background: var(--c-ui-dark); color: var(--c-ui-light);
             border: 1px solid var(--c-ui-light); font-family: var(--font);
-            font-size: 16px; padding: 2px; cursor: pointer; outline: none; border-radius: 2px;
+            font-size: 14px; padding: 1px; cursor: pointer; outline: none; border-radius: 2px;
+            opacity: 0; transition: opacity 0.2s ease; pointer-events: none;
+        }
+        .avatar-container:hover .char-select {
+            opacity: 1; pointer-events: auto; /* 滑鼠靠近頭像時立刻顯示選單 */
         }
 
         .user-name-tag {
@@ -213,7 +217,6 @@
                     </div>
                     <div class="top-pill">token: <span contenteditable="true">20k/20k</span></div>
                     
-                    <!-- 完美消除黑框的表情選單 -->
                     <div class="top-pill">
                         <select class="top-select" id="mood-select">
                             <option value="(^_^)" selected>(^_^)</option>
@@ -225,17 +228,16 @@
 
                 <div class="chat-area">
                     <div class="user-block">
-                        <!-- 頭像與內建人物選單 -->
-                        <div class="avatar-container">
-                            <div class="avatar-box" onclick="document.getElementById('avatar-input').click()" title="點擊自訂上傳圖片">
+                        <!-- 隱藏式選單：平時乾淨，滑鼠移到頭像上才會浮現選單 -->
+                        <div class="avatar-container" title="滑鼠移至此處切換角色，或點擊上傳自訂頭像">
+                            <div class="avatar-box" onclick="document.getElementById('avatar-input').click()">
                                 <div class="avatar-inner">
                                     <img id="avatar-img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">
                                     <input type="file" id="avatar-input" accept="image/*" onchange="loadCustomAvatar(event)">
                                 </div>
                             </div>
-                            <!-- 6位遊戲人物下拉選單 -->
-                            <select class="char-select" onchange="selectCharacter(event)">
-                                <option value="" disabled selected>選擇人物</option>
+                            <select class="char-select" onchange="selectCharacter(event)" onclick="event.stopPropagation()">
+                                <option value="" disabled selected>快速切換人物</option>
                                 <option value="jack">Jack</option>
                                 <option value="eli">Eli</option>
                                 <option value="hugo">Hugo</option>
@@ -307,7 +309,6 @@
     </div>
 
     <script>
-        // 共用：將圖片載入並自動套用精細的像素馬賽克效果
         function processImageToMosaic(imgElement, sourceUrl) {
             const img = new Image();
             img.crossOrigin = "anonymous";
@@ -318,7 +319,7 @@
                 canvas.width = img.width;
                 canvas.height = img.height;
                 
-                const mosaicScale = 0.35; // 馬賽克細緻度
+                const mosaicScale = 0.35;
                 const w = Math.max(10, canvas.width * mosaicScale);
                 const h = Math.max(10, canvas.height * mosaicScale);
                 
@@ -331,7 +332,6 @@
             img.src = sourceUrl;
         }
 
-        // 1. 自訂上傳圖片並轉馬賽克
         function loadCustomAvatar(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -342,11 +342,9 @@
             reader.readAsDataURL(file);
         }
 
-        // 2. 選擇內建角色 (自動讀取對應的 png 檔案並轉馬賽克)
         function selectCharacter(event) {
             const charName = event.target.value;
             if (!charName) return;
-            // 對應檔名例如 jack.png, miranda.png 需上傳至 GitHub 根目錄
             const imagePath = charName + '.png';
             processImageToMosaic(document.getElementById('avatar-img'), imagePath);
         }
