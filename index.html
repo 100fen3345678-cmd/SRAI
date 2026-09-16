@@ -90,7 +90,7 @@
         
         .user-block { display: flex; gap: 20px; align-items: flex-start; }
         
-        /* 隱藏式選單容器：平時透明隱藏，滑鼠移上去才浮現 */
+        /* 點擊切換選單的容器 */
         .avatar-container { position: relative; width: 85px; height: 85px; cursor: pointer; }
         .avatar-box {
             width: 85px; height: 85px; background-color: var(--c-ui-dark);
@@ -99,17 +99,15 @@
         .avatar-inner { width: 100%; height: 100%; border: 1px solid #666; overflow: hidden; background: #000; }
         .avatar-inner img { width: 100%; height: 100%; object-fit: cover; }
         
-        /* 角色快速選單（平時隱藏，Hover 時浮現） */
+        /* 角色快速選單（透過點擊控制顯示/隱藏） */
         .char-select {
-            position: absolute; bottom: -25px; left: 0; width: 100%;
+            position: absolute; bottom: -30px; left: 0; width: 120px; z-index: 100;
             background: var(--c-ui-dark); color: var(--c-ui-light);
             border: 1px solid var(--c-ui-light); font-family: var(--font);
-            font-size: 14px; padding: 1px; cursor: pointer; outline: none; border-radius: 2px;
-            opacity: 0; transition: opacity 0.2s ease; pointer-events: none;
+            font-size: 16px; padding: 3px; cursor: pointer; outline: none; border-radius: 2px;
+            display: none; /* 預設隱藏，點擊頭像後顯示 */
         }
-        .avatar-container:hover .char-select {
-            opacity: 1; pointer-events: auto; /* 滑鼠靠近頭像時立刻顯示選單 */
-        }
+        .char-select.show { display: block; }
 
         .user-name-tag {
             background-color: #000; padding: 2px 10px; font-size: 22px; 
@@ -228,16 +226,18 @@
 
                 <div class="chat-area">
                     <div class="user-block">
-                        <!-- 隱藏式選單：平時乾淨，滑鼠移到頭像上才會浮現選單 -->
-                        <div class="avatar-container" title="滑鼠移至此處切換角色，或點擊上傳自訂頭像">
-                            <div class="avatar-box" onclick="document.getElementById('avatar-input').click()">
+                        <!-- 改為點擊頭像開啟/關閉選單，同時支援上傳或選擇角色 -->
+                        <div class="avatar-container" onclick="toggleCharMenu(event)" title="點擊頭像切換內建角色或自訂上傳">
+                            <div class="avatar-box">
                                 <div class="avatar-inner">
                                     <img id="avatar-img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">
                                     <input type="file" id="avatar-input" accept="image/*" onchange="loadCustomAvatar(event)">
                                 </div>
                             </div>
-                            <select class="char-select" onchange="selectCharacter(event)" onclick="event.stopPropagation()">
-                                <option value="" disabled selected>快速切換人物</option>
+                            <!-- 點擊展開的選單 -->
+                            <select class="char-select" id="char-dropdown" onchange="selectCharacter(event)" onclick="event.stopPropagation()">
+                                <option value="" disabled selected>選擇角色</option>
+                                <option value="custom">📁 自訂上傳...</option>
                                 <option value="jack">Jack</option>
                                 <option value="eli">Eli</option>
                                 <option value="hugo">Hugo</option>
@@ -309,6 +309,20 @@
     </div>
 
     <script>
+        // 點擊頭像切換選單顯示狀態
+        function toggleCharMenu(event) {
+            const dropdown = document.getElementById('char-dropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // 點擊畫面其他地方自動關閉選單
+        window.onclick = function(event) {
+            if (!event.target.closest('.avatar-container')) {
+                const dropdown = document.getElementById('char-dropdown');
+                if (dropdown) dropdown.classList.remove('show');
+            }
+        }
+
         function processImageToMosaic(imgElement, sourceUrl) {
             const img = new Image();
             img.crossOrigin = "anonymous";
@@ -332,6 +346,21 @@
             img.src = sourceUrl;
         }
 
+        // 下拉選單選擇角色或自訂上傳
+        function selectCharacter(event) {
+            const val = event.target.value;
+            const dropdown = document.getElementById('char-dropdown');
+            dropdown.classList.remove('show');
+
+            if (val === 'custom') {
+                document.getElementById('avatar-input').click();
+            } else if (val) {
+                const imagePath = val + '.png';
+                processImageToMosaic(document.getElementById('avatar-img'), imagePath);
+            }
+            event.target.value = ""; // 重置選單
+        }
+
         function loadCustomAvatar(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -340,13 +369,6 @@
                 processImageToMosaic(document.getElementById('avatar-img'), e.target.result);
             };
             reader.readAsDataURL(file);
-        }
-
-        function selectCharacter(event) {
-            const charName = event.target.value;
-            if (!charName) return;
-            const imagePath = charName + '.png';
-            processImageToMosaic(document.getElementById('avatar-img'), imagePath);
         }
         
         const nameFields = document.querySelectorAll('.sync-name');
