@@ -28,8 +28,9 @@
             --tail-size: 35px;
             --font-ver: 16px;
             --thumb-size: 24px;
-            --top-bar-pad-v: 6px;    /* 頂部列上下內距 */
-            --draft-pad-v: 15px;     /* 底部草稿區上下內距 */
+            --top-bar-pad-v: 6px;    
+            --draft-pad-v: 15px;     
+            --msg-img-max: 450px;    
         }
 
         /* 4:3 模式尺寸 */
@@ -48,10 +49,10 @@
             --draft-pad-v: 25px;
         }
 
-        /* 1:1 模式專屬尺寸 (加厚外框、拉開間距、填補空曠) */
+        /* 1:1 模式專屬尺寸 */
         .ratio-1x1 {
-            --chat-gap: 100px;     /* 大幅拉開對話間距 */
-            --icon-size: 130px;    /* 最大化頭像與 Logo */
+            --chat-gap: 100px;     
+            --icon-size: 130px;    
             --font-name: 36px;
             --font-msg: 46px;
             --bubble-pad-v: 24px;
@@ -60,8 +61,8 @@
             --tail-size: 55px;
             --font-ver: 26px;
             --thumb-size: 40px;
-            --top-bar-pad-v: 18px; /* 加厚頂部狀態列 */
-            --draft-pad-v: 45px;   /* 大幅加高底部草稿輸入區 */
+            --top-bar-pad-v: 18px; 
+            --draft-pad-v: 45px;   
         }
 
         body {
@@ -144,7 +145,6 @@
             appearance: none; -webkit-appearance: none; -moz-appearance: none;
         }
 
-        /* 確保上下邊距對稱，讓 justify-content: center 發揮絕對置中效果 */
         .chat-area { 
             padding: 40px 40px; 
             display: flex; 
@@ -186,8 +186,14 @@
             text-shadow: 0 0 3px rgba(89,213,122,0.3); 
         }
 
-        .ai-block { display: flex; justify-content: flex-end; align-items: flex-end; padding-right: 15px;}
-        .ai-content { display: flex; flex-direction: column; align-items: flex-end; }
+        .ai-block { 
+            display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; 
+        }
+        
+        .ai-bubble-row {
+            display: flex; align-items: flex-start; 
+        }
+
         .ai-bubble {
             background-color: var(--c-bubble); border: 2px solid var(--c-ui-light);
             padding: var(--bubble-pad-v) var(--bubble-pad-h); font-size: var(--font-msg); 
@@ -195,13 +201,30 @@
             box-shadow: 2px 2px 0px rgba(0,0,0,0.4);
         }
         
-        .ai-tail { width: var(--tail-size); height: var(--tail-size); margin-bottom: 10px; display: flex; align-self: center; flex-shrink: 0;}
-        .ai-tail svg { width: 100%; height: 100%; }
-
-        .thumb-box { margin-top: 8px; margin-right: 15px; display: flex; width: var(--thumb-size); height: var(--thumb-size); flex-shrink: 0;}
+        /* 關鍵修正：將大拇指移入氣泡內，並絕對定位在右下角 */
+        .thumb-box { 
+            position: absolute;
+            /* 動態計算向下與向右的位置 */
+            bottom: calc(-1 * var(--thumb-size) - 8px); 
+            right: -2px; /* 貼齊右邊緣 */
+            width: var(--thumb-size); 
+            height: var(--thumb-size); 
+            display: flex; 
+            pointer-events: none; /* 防止點擊干擾編輯 */
+        }
         .thumb-box svg { width: 100%; height: 100%; }
 
-        .ai-logo-group { display: flex; flex-direction: column; align-items: center; margin-left: 5px; flex-shrink: 0;}
+        .ai-tail { 
+            width: var(--tail-size); height: var(--tail-size); 
+            display: flex; flex-shrink: 0; 
+            margin-top: 25px; 
+        }
+        .ai-tail svg { width: 100%; height: 100%; }
+
+        .ai-logo-group { 
+            display: flex; flex-direction: column; align-items: center; 
+            margin-left: 5px; flex-shrink: 0; 
+        }
         
         .logo-box {
             width: var(--icon-size); height: var(--icon-size); background-color: var(--c-logo-bg);
@@ -266,11 +289,45 @@
             padding: 10px 15px; background-color: var(--c-ui-dark); color: var(--c-ui-light); 
             font-family: var(--font); font-size: 22px; cursor: pointer; border: 2px solid var(--c-ui-light); font-weight: bold;
         }
+        
+        .ratio-select:disabled {
+            opacity: 0.5; cursor: not-allowed; border-color: #666; color: #999;
+        }
 
         button { padding: 12px 24px; background-color: var(--c-ui-light); color: #000; font-family: var(--font); font-size: 22px; cursor: pointer; border: none; font-weight: bold;}
         button:hover { background-color: #fff; }
         
         #avatar-input { display: none; }
+
+        .msg-hover-area {
+            position: relative;
+        }
+        .upload-msg-img-btn {
+            position: absolute;
+            background-color: var(--c-ui-dark);
+            color: var(--c-ui-light);
+            border: 1px solid var(--c-ui-light);
+            padding: 2px 8px; font-size: 16px;
+            font-family: var(--font);
+            cursor: pointer; border-radius: 4px;
+            opacity: 0; pointer-events: none; transition: opacity 0.2s;
+            z-index: 50;
+        }
+        .msg-hover-area:hover .upload-msg-img-btn {
+            opacity: 1; pointer-events: auto;
+        }
+        .user-block .msg-hover-area .upload-msg-img-btn { right: 0; top: 0; }
+        .ai-bubble .upload-msg-img-btn { right: 10px; top: -15px; }
+
+        .msg-embedded-img {
+            max-width: 100%;
+            max-height: var(--msg-img-max);
+            margin-top: 15px;
+            border: 2px solid var(--c-ui-light);
+            border-radius: 2px;
+            object-fit: contain;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -329,40 +386,53 @@
                             </select>
                         </div>
 
-                        <div style="flex:1;">
+                        <div style="flex:1;" class="msg-hover-area">
                             <div class="user-name-tag">[ <span contenteditable="true" class="sync-name">CHiLi</span> ]</div>
                             <div style="color:var(--c-ui-light); font-size: var(--font-name);">>></div>
                             <div class="user-msg" contenteditable="true">Is coffee something poor people drink?</div>
+                            
+                            <img id="user-msg-img" class="msg-embedded-img" src="" style="display:none;" onclick="removeEmbeddedImg(this)" title="點擊可移除圖片">
+                            
+                            <div class="upload-msg-img-btn hide-on-export" onclick="document.getElementById('user-msg-upload').click()">[ + IMG ]</div>
+                            <input type="file" id="user-msg-upload" accept="image/*" onchange="loadEmbeddedImg(event, 'user-msg-img')" style="display:none;">
                         </div>
                     </div>
 
                     <div class="ai-block">
-                        <div class="ai-content">
-                            <div class="ai-bubble" contenteditable="true">Yes, rich people can just go to sleep when they're tired.</div>
+                        <div class="ai-bubble-row">
+                            <div class="ai-bubble msg-hover-area">
+                                <div class="ai-msg-text" contenteditable="true" style="outline: none;">Yes, rich people can just go to sleep when they're tired.</div>
+                                
+                                <img id="ai-msg-img" class="msg-embedded-img" src="" style="display:none;" onclick="removeEmbeddedImg(this)" title="點擊可移除圖片">
+                                
+                                <div class="upload-msg-img-btn hide-on-export" onclick="document.getElementById('ai-msg-upload').click()">[ + IMG ]</div>
+                                <input type="file" id="ai-msg-upload" accept="image/*" onchange="loadEmbeddedImg(event, 'ai-msg-img')" style="display:none;">
+
+                                <!-- 關鍵修正：大拇指移入氣泡內，絕對鎖死在右下角 -->
+                                <div class="thumb-box">
+                                    <svg viewBox="0 0 24 24" fill="none">
+                                        <path d="M8 21H4V9H8V21ZM8 9H14L15 4H18V9H22V15L19 21H8Z" stroke="#59d57a" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"/>
+                                    </svg>
+                                </div>
+                            </div>
                             
-                            <div class="thumb-box">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path d="M8 21H4V9H8V21ZM8 9H14L15 4H18V9H22V15L19 21H8Z" stroke="#59d57a" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"/>
+                            <div class="ai-tail">
+                                <svg viewBox="0 0 35 35" fill="none" preserveAspectRatio="none">
+                                    <path d="M0,25 L8,25 L8,22 L11,22 L11,19 L14,19 L14,16 L17,16 L17,13 L35,13" stroke="#59d57a" stroke-width="2" shape-rendering="crispEdges"/>
                                 </svg>
                             </div>
-                        </div>
-                        
-                        <div class="ai-tail">
-                            <svg viewBox="0 0 35 35" fill="none" preserveAspectRatio="none">
-                                <path d="M0,25 L8,25 L8,22 L11,22 L11,19 L14,19 L14,16 L17,16 L17,13 L35,13" stroke="#59d57a" stroke-width="2" shape-rendering="crispEdges"/>
-                            </svg>
-                        </div>
-                        
-                        <div class="ai-logo-group">
-                            <div class="logo-box" title="官方內建 Logo">
-                                <img src="logo.png" alt="Logo" onerror="this.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='">
+                            
+                            <div class="ai-logo-group">
+                                <div class="logo-box" title="官方內建 Logo">
+                                    <img src="logo.png" alt="Logo" onerror="this.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='">
+                                </div>
+                                <div class="ai-version">Real AI 3.0</div>
                             </div>
-                            <div class="ai-version">Real AI 3.0</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="bottom-section">
+                <div class="bottom-section" id="bottom-section">
                     <div class="toolbar-strip">
                         <div class="t-icon-box">
                             <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
@@ -392,7 +462,7 @@
 
     <!-- 底部控制列 -->
     <div class="controls">
-        <select class="ratio-select" onchange="changeAspectRatio(this.value)">
+        <select id="ratio-select" class="ratio-select" onchange="changeAspectRatio(this.value)">
             <option value="free">Free Ratio (Auto)</option>
             <option value="1:1">1:1 (Square)</option>
             <option value="4:3">4:3 (Standard)</option>
@@ -402,20 +472,59 @@
     </div>
 
     <script>
+        function checkImageState() {
+            const userImg = document.getElementById('user-msg-img');
+            const aiImg = document.getElementById('ai-msg-img');
+            const bottomSection = document.getElementById('bottom-section');
+            const ratioSelect = document.getElementById('ratio-select');
+            
+            if ((userImg.src && userImg.style.display !== 'none') || 
+                (aiImg.src && aiImg.style.display !== 'none')) {
+                bottomSection.style.display = 'none';
+                ratioSelect.value = 'free';
+                changeAspectRatio('free');
+                ratioSelect.disabled = true;
+                ratioSelect.title = "已加入圖片，鎖定為自由比例以防止跑版";
+            } else {
+                bottomSection.style.display = 'flex';
+                ratioSelect.disabled = false;
+                ratioSelect.title = "";
+            }
+        }
+
+        function removeEmbeddedImg(imgEl) {
+            imgEl.style.display = 'none';
+            imgEl.src = '';
+            checkImageState();
+        }
+
+        function loadEmbeddedImg(event, imgId) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgEl = document.getElementById(imgId);
+                imgEl.src = e.target.result;
+                imgEl.style.display = 'block';
+                checkImageState(); 
+            };
+            reader.readAsDataURL(file);
+            event.target.value = ''; 
+        }
+
         function changeAspectRatio(ratio) {
             const wrapper = document.getElementById('export-wrapper');
             
-            // 先清除所有比例 class
             wrapper.classList.remove('ratio-4x3', 'ratio-1x1');
 
             if (ratio === 'free') {
                 wrapper.style.height = 'auto';
             } else if (ratio === '1:1') {
                 wrapper.style.height = '1040px';
-                wrapper.classList.add('ratio-1x1'); // 套用 1:1 專屬厚實排版
+                wrapper.classList.add('ratio-1x1'); 
             } else if (ratio === '4:3') {
                 wrapper.style.height = '780px';
-                wrapper.classList.add('ratio-4x3'); // 套用 4:3 放大排版
+                wrapper.classList.add('ratio-4x3'); 
             } else if (ratio === '16:9') {
                 wrapper.style.height = '585px';
             }
@@ -491,11 +600,16 @@
             const wrapper = document.getElementById('export-wrapper');
             document.querySelectorAll('[contenteditable="true"]').forEach(el => el.style.borderBottom = '1px solid transparent');
             
+            const hiddenElements = document.querySelectorAll('.hide-on-export');
+            hiddenElements.forEach(el => el.style.display = 'none');
+            
             html2canvas(wrapper, { scale: 2, backgroundColor: '#111', logging: false }).then(canvas => {
                 const link = document.createElement('a'); 
                 link.download = 'SRAI_Final_Post_' + Date.now() + '.png'; 
                 link.href = canvas.toDataURL('image/png'); 
                 link.click();
+                
+                hiddenElements.forEach(el => el.style.display = '');
             });
         }
     </script>
