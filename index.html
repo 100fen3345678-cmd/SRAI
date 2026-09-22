@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SRAI XP.exe</title>
+    <title>SRAI 迷因原生生成器 (頭像完美填滿版)</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -157,11 +157,19 @@
         .user-block { display: flex; gap: 20px; align-items: flex-start; }
         
         .avatar-container { position: relative; width: var(--icon-size); height: var(--icon-size); cursor: pointer; flex-shrink: 0; }
+        
+        /* 修正：移除 padding 與深色背景，讓內部綠色漸層完全填滿 */
         .avatar-box {
-            width: 100%; height: 100%; background-color: var(--c-ui-dark);
-            border: 2px solid var(--c-ui-light); padding: 3px; box-sizing: border-box;
+            width: 100%; height: 100%; 
+            border: 2px solid var(--c-ui-light); 
+            box-sizing: border-box;
         }
-        .avatar-inner { width: 100%; height: 100%; border: 1px solid #666; overflow: hidden; background: #000; }
+        /* 修正：移除多餘的灰色邊框 (border: 1px solid #666)，直接套用綠色漸層 */
+        .avatar-inner { 
+            width: 100%; height: 100%; 
+            overflow: hidden; 
+            background: radial-gradient(circle at 50% 50%, #47b062 0%, #1e4d29 100%);
+        }
         .avatar-inner img { width: 100%; height: 100%; object-fit: cover; }
         
         .char-select {
@@ -201,16 +209,14 @@
             box-shadow: 2px 2px 0px rgba(0,0,0,0.4);
         }
         
-        /* 關鍵修正：將大拇指移入氣泡內，並絕對定位在右下角 */
         .thumb-box { 
             position: absolute;
-            /* 動態計算向下與向右的位置 */
             bottom: calc(-1 * var(--thumb-size) - 8px); 
-            right: -2px; /* 貼齊右邊緣 */
+            right: -2px; 
             width: var(--thumb-size); 
             height: var(--thumb-size); 
             display: flex; 
-            pointer-events: none; /* 防止點擊干擾編輯 */
+            pointer-events: none; 
         }
         .thumb-box svg { width: 100%; height: 100%; }
 
@@ -425,7 +431,6 @@
                                 <div class="upload-msg-img-btn hide-on-export" onclick="document.getElementById('ai-msg-upload').click()">[ + IMG ]</div>
                                 <input type="file" id="ai-msg-upload" accept="image/*" onchange="loadEmbeddedImg(event, 'ai-msg-img')" style="display:none;">
 
-                                <!-- 關鍵修正：大拇指移入氣泡內，絕對鎖死在右下角 -->
                                 <div class="thumb-box">
                                     <svg viewBox="0 0 24 24" fill="none">
                                         <path d="M8 21H4V9H8V21ZM8 9H14L15 4H18V9H22V15L19 21H8Z" stroke="#59d57a" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"/>
@@ -569,13 +574,20 @@
                 canvas.width = img.width;
                 canvas.height = img.height;
                 
-                const mosaicScale = 0.18;
+                const mosaicScale = 0.35;
                 const w = Math.max(10, canvas.width * mosaicScale);
                 const h = Math.max(10, canvas.height * mosaicScale);
                 
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = w;
+                tempCanvas.height = h;
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                tempCtx.imageSmoothingEnabled = false;
+                tempCtx.drawImage(img, 0, 0, w, h);
+                
                 ctx.imageSmoothingEnabled = false;
-                ctx.drawImage(img, 0, 0, w, h);
-                ctx.drawImage(canvas, 0, 0, w, h, 0, 0, canvas.width, canvas.height);
+                ctx.drawImage(tempCanvas, 0, 0, w, h, 0, 0, canvas.width, canvas.height);
                 
                 imgElement.src = canvas.toDataURL('image/png');
             };
